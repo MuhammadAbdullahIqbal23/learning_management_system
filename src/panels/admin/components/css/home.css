@@ -1,85 +1,95 @@
-/* Admin Dashboard Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    display: flex;
-  }
-  
-  .admin-home {
-    display: flex;
-  }
-  
-  .sidebar {
-    width: 250px;
-    background-color: #43a047; /* Green Sidebar */
-    color: white;
-    height: 100vh;
-    padding-top: 30px;
-    text-align: center;
-  }
-  
-  .sidebar h2 {
-    margin-bottom: 40px;
-  }
-  
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  .sidebar ul li {
-    margin: 20px 0;
-  }
-  
-  .sidebar ul li a {
-    color: white;
-    text-decoration: none;
-    font-size: 18px;
-  }
-  
-  .sidebar ul li a:hover {
-    text-decoration: underline;
-  }
-  
-  .main-content {
-    width: calc(100% - 250px);
-    padding: 20px;
-  }
-  
-  header h1 {
-    color: #43a047;
-  }
-  
-  #stats {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
-  }
-  
-  .stat-card {
-    background: #f4f4f4;
-    border-radius: 8px;
-    width: 25%;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  #latest-activities {
-    margin-top: 40px;
-  }
-  
-  #latest-activities ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  #latest-activities ul li {
-    background-color: #f9f9f9;
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background-color: #43a047; /* Primary Green Color */
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 100;
+  overflow-y: auto; /* Make the sidebar scrollable */
+  height: 100vh; /* Full height of the viewport */
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+}
+
+.sidebar-item h2 {
+  font-size: 18px;
+  color: white; /* White text for headings */
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.sidebar-item h2:hover {
+  color: #c8e6c9; /* Lighter green on hover */
+}
+
+.sidebar-item ul {
+  list-style: none;
+  padding: 0;
+  margin-left: 20px;
+  display: none; /* Hide by default */
+}
+
+.sidebar-item ul li {
+  margin: 10px 0;
+}
+
+.sidebar-item ul li a {
+  text-decoration: none;
+  color: #e8f5e9; /* Light green text for links */
+  font-size: 16px;
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.sidebar-item ul li a:hover {
+  color: #a5d6a7; /* Slightly darker green on hover */
+}
+
+/* Show the dropdown items if dropdown is open */
+.sidebar-item ul.dropdown-list {
+  display: block;
+}
+
+/* Main Content Styles */
+.main-content {
+  margin-left: 270px; /* Space for the sidebar */
+  padding: 20px;
+  overflow-y: auto; /* Allow scrolling if needed */
+  background-color: #f5f5f5; /* Light gray background for contrast */
+}
+
+.stat-card {
+  background-color: #e8f5e9; /* Very light green background */
+  padding: 20px;
+  margin: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card h3 {
+  font-size: 16px;
+  color: #388e3c; /* Darker green for headings */
+}
+
+.stat-card p {
+  font-size: 24px;
+  color: #2e7d32; /* Consistent green for text */
+}
+
+#latest-activities ul {
+  list-style: none;
+  padding: 0;
+}
+
+#latest-activities li {
+  background-color: #e8f5e9; /* Light green for list items */
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 4px;
+}
