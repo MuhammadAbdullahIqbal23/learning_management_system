@@ -1,20 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom"; 
 import "./../css/login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // Add loading state
-  const navigate = useNavigate(); // Initialize navigate
+  const [role, setRole] = useState("Student"); 
+  const [loading, setLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false); 
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    // Prevent duplicate submissions while loading
     if (loading) return;
+    setLoading(true);
 
-    setLoading(true); // Set loading to true
     try {
       const response = await fetch("http://localhost:5000/api/login", {
         method: "POST",
@@ -24,27 +24,59 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      // Ensure response is valid
       if (!response.ok) {
-        console.error(`HTTP Error: ${response.status}`);
-        alert("Login failed. Please check your credentials and try again.");
+        alert("Login failed. Please check your credentials.");
         setLoading(false);
         return;
       }
 
       const data = await response.json();
-
       if (data.success) {
         alert("Login Successful!");
-        navigate("/admin"); // Redirect to the Admin Home Page
+        navigate("/admin"); 
       } else {
-        alert(data.message || "Login Failed!"); // Use server-provided message if available
+        alert(data.message || "Login Failed!");
       }
     } catch (error) {
       console.error("Error during login:", error);
-      alert("An error occurred while connecting to the server. Please try again.");
+      alert("An error occurred while connecting to the server.");
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password, role }),
+      });
+
+      if (!response.ok) {
+        alert("Registration failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        alert("Registration Successful!");
+        setIsRegistering(false); 
+      } else {
+        alert(data.message || "Registration Failed!");
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      alert("An error occurred while connecting to the server.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,9 +88,18 @@ const Login = () => {
       </div>
       <div className="login-container">
         <div className="login-card">
-          <h2 className="login-title">Welcome Back!</h2>
-          <p className="login-subtitle">Log in to access the admin panel</p>
-          <form className="login-form" onSubmit={handleLogin}>
+          <h2 className="login-title">
+            {isRegistering ? "Register" : "Welcome Back!"}
+          </h2>
+          <p className="login-subtitle">
+            {isRegistering
+              ? "Create an account to get started"
+              : "Log in to access the admin panel"}
+          </p>
+          <form
+            className="login-form"
+            onSubmit={isRegistering ? handleRegister : handleLogin}
+          >
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
@@ -81,12 +122,51 @@ const Login = () => {
                 required
               />
             </div>
-            <button type="submit" className="login-button" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            {isRegistering && (
+              <div className="form-group">
+                <label htmlFor="role">Role</label>
+                <select
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  required
+                >
+                  <option value="Student">Student</option>
+                  <option value="Instructor">Instructor</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+            )}
+            <button
+              type="submit"
+              className="login-button"
+              disabled={loading}
+            >
+              {loading
+                ? isRegistering
+                  ? "Registering..."
+                  : "Logging in..."
+                : isRegistering
+                ? "Register"
+                : "Login"}
             </button>
           </form>
           <p className="login-footer">
-            Need help? <a href="/support">Contact Support</a>
+            {isRegistering ? (
+              <>
+                Already have an account?{" "}
+                <a href="#" onClick={() => setIsRegistering(false)}>
+                  Login here
+                </a>
+              </>
+            ) : (
+              <>
+                Don't have an account?{" "}
+                <a href="#" onClick={() => setIsRegistering(true)}>
+                  Register here
+                </a>
+              </>
+            )}
           </p>
         </div>
       </div>
