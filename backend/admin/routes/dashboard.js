@@ -1,5 +1,6 @@
 const express = require("express");
-const { getDashboardData } = require("../controllers/dashboardController");
+const path = require("path");
+const { getDashboardData } = require(path.resolve(__dirname, "../controllers/dashboardController"));
 
 const router = express.Router();
 

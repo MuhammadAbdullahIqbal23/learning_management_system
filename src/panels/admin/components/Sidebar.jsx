@@ -1,33 +1,18 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './styles/home.css'; // Use appropriate class names for styling
 
 const Sidebar = () => {
   return (
-    <div className="sidebar">
-      <div className="logo">
-        <h2>Admin Panel</h2>
-      </div>
-      <ul className="nav-links">
-        <li>
-          <Link to="/dashboard">Dashboard</Link>
-        </li>
-        <li>
-          <Link to="/users">Users</Link>
-        </li>
-        <li>
-          <Link to="/courses">Courses</Link>
-        </li>
-        <li>
-          <Link to="/instructors">Instructors</Link>
-        </li>
-        <li>
-          <Link to="/students">Students</Link>
-        </li>
-        <li>
-          <Link to="/settings">Settings</Link>
-        </li>
+    <aside className="sidebar">
+      <ul className="sidebar-links">
+        <li><Link to="/admin/dashboard">Admin Dashboard</Link></li>
+        <li><Link to="/admin/manage-users">Manage Users</Link></li>
+        <li><Link to="/instructor/courses">Instructor Courses</Link></li>
+        <li><Link to="/student/enrolled">Enrolled Courses</Link></li>
+        <li><Link to="/reports">Reports</Link></li>
       </ul>
-    </div>
+    </aside>
   );
 };
 

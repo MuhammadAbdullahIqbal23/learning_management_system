@@ -1,4 +1,5 @@
 const Course = require('../models/Course');
+const Student = require('../models/Student');
 
 // Fetch enrolled courses for a student
 exports.getEnrolledCourses = async (req, res) => {
@@ -13,9 +14,9 @@ exports.getEnrolledCourses = async (req, res) => {
   }
 };
 
-// Submit assignment
-exports.submitAssignment = async (req, res) => {
-  const { courseId, studentId, assignment } = req.body;
+// Enroll in a course
+exports.enrollInCourse = async (req, res) => {
+  const { studentId, courseId } = req.body;
 
   try {
     const course = await Course.findById(courseId);
@@ -23,9 +24,44 @@ exports.submitAssignment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    course.assignments.push({ student: studentId, content: assignment });
+    if (!course.students.includes(studentId)) {
+      course.students.push(studentId);
+      await course.save();
+    }
+
+    res.status(200).json({ success: true, message: 'Enrolled successfully', course });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Submit a quiz
+exports.submitQuiz = async (req, res) => {
+  const { courseId, studentId, quiz } = req.body;
+
+  try {
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    course.quizzes.push({ student: studentId, quiz });
     await course.save();
-    res.status(200).json({ success: true, message: 'Assignment submitted successfully' });
+    res.status(200).json({ success: true, message: 'Quiz submitted successfully', course });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Get grades for enrolled courses
+exports.getGrades = async (req, res) => {
+  const { studentId } = req.query;
+
+  try {
+    const courses = await Course.find({ students: studentId }).select('grades');
+    res.status(200).json({ success: true, grades: courses });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });

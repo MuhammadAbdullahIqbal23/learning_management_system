@@ -1,6 +1,7 @@
 const express = require('express');
+const path = require('path');
 const router = express.Router();
-const instructorController = require('../controllers/instructorController');
+const instructorController = require(path.resolve(__dirname, '../controllers/instructorController'));
 
 // Instructor routes
 router.post('/courses', instructorController.createCourse);       // Create a new course

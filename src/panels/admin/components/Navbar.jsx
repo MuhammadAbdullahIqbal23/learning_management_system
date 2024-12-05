@@ -1,21 +1,19 @@
 import React from 'react';
+import './styles/home.css'; // Assuming home.css handles some general styling
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
   return (
-    <div className="navbar">
-      <div className="navbar-left">
-        <h2>Admin Panel</h2>
+    <nav className="navbar">
+      <div className="navbar-logo">
+        <Link to="/">Learning Management System</Link>
       </div>
-      <div className="navbar-right">
-        <Link to="/profile" className="profile-link">
-          <button className="btn">Profile</button>
-        </Link>
-        <Link to="/login" className="logout-link">
-          <button className="btn">Logout</button>
-        </Link>
-      </div>
-    </div>
+      <ul className="navbar-links">
+        <li><Link to="/dashboard">Dashboard</Link></li>
+        <li><Link to="/profile">Profile</Link></li>
+        <li><Link to="/logout">Logout</Link></li>
+      </ul>
+    </nav>
   );
 };
 

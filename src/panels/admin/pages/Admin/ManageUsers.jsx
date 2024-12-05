@@ -1,36 +1,39 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Navbar from '../../components/Navbar';
-import Table from '../../components/Table';
+import React, { useState } from 'react';
 
 const ManageUsers = () => {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([
+    { id: 1, name: 'John Doe', role: 'Student' },
+    { id: 2, name: 'Jane Smith', role: 'Instructor' },
+    { id: 3, name: 'Bob Johnson', role: 'Admin' },
+  ]);
 
-  useEffect(() => {
-    // Simulate API call to fetch users
-    const fetchUsers = async () => {
-      const usersData = [
-        { username: 'john_doe', role: 'Admin', status: 'Active' },
-        { username: 'jane_smith', role: 'Instructor', status: 'Inactive' },
-      ];
-      setUsers(usersData);
-    };
-
-    fetchUsers();
-  }, []);
-
-  const headers = ['Username', 'Role', 'Status'];
+  const deleteUser = (id) => {
+    setUsers(users.filter(user => user.id !== id));
+  };
 
   return (
-    <div className="manage-users">
-      <Sidebar />
-      <div className="main-content">
-        <Navbar />
-        <div className="content">
-          <h1>Manage Users</h1>
-          <Table headers={headers} data={users} actions={true} />
-        </div>
-      </div>
+    <div>
+      <h1>Manage Users</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map(user => (
+            <tr key={user.id}>
+              <td>{user.name}</td>
+              <td>{user.role}</td>
+              <td>
+                <button onClick={() => deleteUser(user.id)}>Delete</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

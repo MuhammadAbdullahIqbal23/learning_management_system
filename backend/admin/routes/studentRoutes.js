@@ -1,6 +1,9 @@
 const express = require('express');
+const path = require('path');
 const router = express.Router();
-const studentController = require('../controllers/studentController');
+
+// Using absolute path for controller import
+const studentController = require(path.resolve(__dirname, '../controllers/studentController'));
 
 // Student routes
 router.get('/courses', studentController.getEnrolledCourses);   // Get enrolled courses
