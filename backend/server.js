@@ -2,11 +2,11 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
-const authRoutes = require('../backend/admin/routes/authRoutes');
-const adminRoutes = require('../backend/admin/routes/adminRoutes');
-const instructorRoutes = require('../backend/admin/routes/instructorRoutes');
-const studentRoutes = require('../backend/admin/routes//studentRoutes');
-const courseRoutes = require('../backend/admin/routes//courseRoutes');
+const authRoutes = require('./admin/routes/authRoutes');
+const adminRoutes = require('./admin/routes/adminRoutes');
+const instructorRoutes = require('./admin/routes/instructorRoutes');
+const studentRoutes = require('./admin/routes/studentRoutes');
+const courseRoutes = require('./admin/routes/courseRoutes');
 const errorMiddleware = require('./admin/middlewares/errorMiddleware');
 
 // Load environment variables

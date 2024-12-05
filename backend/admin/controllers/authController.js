@@ -4,26 +4,20 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Utility function to send a structured response
 const sendResponse = (res, status, success, message, data = {}) => {
   res.status(status).json({ success, message, ...data });
 };
 
-// User Registration
 exports.register = async (req, res) => {
   const { username, password, role } = req.body;
 
   try {
-    // Check if the user already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return sendResponse(res, 400, false, 'Username already exists');
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Save the new user to the database
     const newUser = new User({ username, password: hashedPassword, role });
     await newUser.save();
 
@@ -34,24 +28,20 @@ exports.register = async (req, res) => {
   }
 };
 
-// User Login
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    // Find the user in the database
     const user = await User.findOne({ username });
     if (!user) {
       return sendResponse(res, 404, false, 'User not found');
     }
 
-    // Verify the password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return sendResponse(res, 401, false, 'Invalid credentials');
     }
 
-    // Generate a JWT token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,

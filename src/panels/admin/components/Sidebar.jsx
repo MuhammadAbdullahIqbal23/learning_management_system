@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './styles/home.css'; // Use appropriate class names for styling
+import '../styles/Sidebar.css'; // Use appropriate class names for styling
 
 const Sidebar = () => {
   return (

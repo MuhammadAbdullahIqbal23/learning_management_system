@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
-import './styles.css'; // Use your centralized styles file
+import './Register.css'; // Use your centralized styles file
 
 const Register = () => {
   const [user, setUser] = useState({ name: '', email: '', password: '', role: 'Student' });
