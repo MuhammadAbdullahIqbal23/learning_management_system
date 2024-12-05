@@ -1,0 +1,26 @@
+/* Dashboard Styles */
+.dashboard .summary {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+  }
+  
+  .dashboard .summary-item {
+    background-color: #ecf0f1;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 200px;
+  }
+  
+  .dashboard .summary-item h2 {
+    margin: 0;
+    font-size: 20px;
+  }
+  
+  .dashboard .summary-item p {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+  }
+  
