@@ -5,7 +5,7 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 
 const app = express();
-const port = 5000;
+const port = 5003;
 
 app.use(cors());
 app.use(express.json());
