@@ -1,11 +1,22 @@
 const express = require('express');
-const path = require('path');
-const router = express.Router();
-const courseController = require(path.resolve(__dirname, '../controllers/courseController'));
+const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
+const courseController = require('../controllers/courseController');
 
-// Course Routes
-router.get('/', courseController.getAllCourses); // Get all courses
-router.get('/:id', courseController.getCourseById); // Get course by ID
-router.get('/category/:category', courseController.getCoursesByCategory); // Get courses by category
+const router = express.Router();
+
+// Create a course (Admin/Instructor only)
+router.post('/', authMiddleware, adminMiddleware, courseController.createCourse);
+
+// Get all courses (Public route)
+router.get('/', courseController.getCourses);
+
+// Get a single course by ID
+router.get('/:id', courseController.getCourseById);
+
+// Update a course (Admin/Instructor only)
+router.put('/:id', authMiddleware, adminMiddleware, courseController.updateCourse);
+
+// Delete a course (Admin only)
+router.delete('/:id', authMiddleware, adminMiddleware, courseController.deleteCourse);
 
 module.exports = router;

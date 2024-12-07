@@ -1,57 +1,33 @@
 const mongoose = require('mongoose');
 
-const lectureSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
+const courseSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, 'Course title is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: [true, 'Course description is required'],
+    },
+    instructor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User', // Assuming instructors are stored in the User model
+      required: true,
+    },
+    students: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User', // Students enrolled in the course
+      },
+    ],
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  content: {
-    type: String,
-    required: true,
-  },
-});
-
-const assignmentSchema = new mongoose.Schema({
-  student: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  content: {
-    type: String,
-    required: true,
-  },
-  submittedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const courseSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  instructor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  students: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-  }],
-  lectures: [lectureSchema],
-  assignments: [assignmentSchema],
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('Course', courseSchema);

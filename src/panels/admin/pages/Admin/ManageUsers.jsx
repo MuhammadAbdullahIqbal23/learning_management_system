@@ -15,82 +15,64 @@ const ManageUsers = () => {
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch users from the backend
   const fetchUsers = async () => {
     try {
-      // Retrieve the token from localStorage
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU1Nzk0NiwiZXhwIjoxNzMzNTYxNTQ2fQ.qyOvgY2X7hkrUICT4ovTBz1EnYFRd5Jxf9O0SuaKtj0";
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
 
-      // Check if token exists
       if (!token) {
         throw new Error('No authentication token found. Please log in.');
       }
 
-      // Make API call with token in Authorization header
       const response = await axios.get('http://localhost:5002/api/admin/users', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         }
       });
-      
+
       setUsers(response.data.users);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
-      
-      // Handle token expiration or unauthorized access
+      setError(err.response?.data?.message || 'Failed to load users');
+      setLoading(false);
+
       if (err.response?.status === 401) {
         localStorage.removeItem('token');
         navigate('/login');
       }
-
-      setError(err.response?.data?.message || 'Failed to load users');
-      setLoading(false);
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     fetchUsers();
   }, [navigate]);
 
-  // Delete user
   const deleteUser = async (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this user?');
     if (!confirmDelete) return;
 
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU1Nzk0NiwiZXhwIjoxNzMzNTYxNTQ2fQ.qyOvgY2X7hkrUICT4ovTBz1EnYFRd5Jxf9O0SuaKtj0";
-
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
       if (!token) {
         throw new Error('No authentication token found. Please log in.');
       }
 
       await axios.delete(`http://localhost:5002/api/admin/user/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         }
       });
-      
-      setUsers(users.filter(user => user._id !== id));
+
+      setUsers(users.filter((user) => user._id !== id));
       alert('User deleted successfully');
     } catch (err) {
       console.error('Error deleting user:', err);
-      
-      if (err.response?.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
-        return;
-      }
-
       alert(err.response?.data?.message || 'Error deleting user');
     }
   };
 
-  // Open modal for adding/editing user
   const openModal = (user = null) => {
     if (user) {
-      // Editing existing user
       setCurrentUser({
         username: user.username,
         role: user.role,
@@ -98,7 +80,6 @@ const ManageUsers = () => {
       });
       setIsEditing(true);
     } else {
-      // Adding new user
       setCurrentUser({
         username: '',
         role: 'student',
@@ -109,71 +90,79 @@ const ManageUsers = () => {
     setIsModalOpen(true);
   };
 
-  // Handle form submission (create/update)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
+  
+    if (!token) {
+      alert('No authentication token found. Please log in.');
+      navigate('/login');
+      return;
+    }
+  
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU1Nzk0NiwiZXhwIjoxNzMzNTYxNTQ2fQ.qyOvgY2X7hkrUICT4ovTBz1EnYFRd5Jxf9O0SuaKtj0";
-
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
+      // Trim username to remove any leading/trailing whitespace
+      const trimmedUsername = currentUser.username.trim();
+  
+      // Frontend check for existing username
+      const usernameExists = users.some(
+        user => user.username.toLowerCase() === trimmedUsername.toLowerCase()
+      );
+  
+      if (usernameExists && !isEditing) {
+        alert('A user with this username already exists.');
+        return;
       }
-
+  
       if (isEditing) {
         // Update user
         const response = await axios.put(
-          `http://localhost:5002/api/admin/user/${currentUser._id}`, 
-          currentUser,
+          `http://localhost:5002/api/admin/user/${currentUser._id}`,
+          { ...currentUser, username: trimmedUsername },
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           }
         );
-
-        // Update users list
-        setUsers(users.map(user => 
-          user._id === currentUser._id ? response.data.user : user
-        ));
-        
+        setUsers(users.map((user) => (user._id === currentUser._id ? response.data.user : user)));
         alert('User updated successfully');
       } else {
-        // Create new user
+        // Add new user
+        const newUser = {
+          username: trimmedUsername,
+          role: currentUser.role,
+          password: currentUser.password,
+        };
+        
         const response = await axios.post(
-          'http://localhost:5002/api/admin/users', 
-          currentUser,
+          'http://localhost:5002/api/admin/users',
+          newUser,
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
           }
         );
-
-        // Add new user to list
         setUsers([...users, response.data.user]);
-        
         alert('User created successfully');
       }
-
-      // Close modal
       setIsModalOpen(false);
     } catch (err) {
       console.error('Error saving user:', err);
       
-      if (err.response?.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
-        return;
+      // More specific error handling
+      if (err.response?.data?.message.includes('username already exists')) {
+        alert('A user with this username already exists.');
+      } else {
+        alert(err.response?.data?.message || 'Error saving user');
       }
-
-      alert(err.response?.data?.message || 'Error saving user');
     }
-  };
+  };  
+  
 
-  // Render loading or error states
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -181,7 +170,7 @@ const ManageUsers = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Manage Users</h1>
-        <button 
+        <button
           onClick={() => openModal()}
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
@@ -189,7 +178,6 @@ const ManageUsers = () => {
         </button>
       </div>
 
-      {/* User List Table */}
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-200">
@@ -199,19 +187,19 @@ const ManageUsers = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map(user => (
+          {users.map((user) => (
             <tr key={user._id} className="hover:bg-gray-100">
               <td className="border p-2">{user.username}</td>
               <td className="border p-2">{user.role}</td>
               <td className="border p-2 space-x-2">
-                <button 
+                <button
                   onClick={() => openModal(user)}
                   className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
                 >
                   Edit
                 </button>
-                <button 
-                  onClick={() => deleteUser(user._id)} 
+                <button
+                  onClick={() => deleteUser(user._id)}
                   className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                 >
                   Delete
@@ -222,59 +210,58 @@ const ManageUsers = () => {
         </tbody>
       </table>
 
-      {/* Modal for Add/Edit User */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">
-              {isEditing ? 'Edit User' : 'Add New User'}
-            </h2>
+            <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit User' : 'Add New User'}</h2>
             <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="block mb-2">Username</label>
+              <input
+                type="text"
+                value={currentUser.username}
+                onChange={(e) => setCurrentUser({ ...currentUser, username: e.target.value })}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block mb-2">Role</label>
+              <select
+                value={currentUser.role}
+                onChange={(e) => setCurrentUser({ ...currentUser, role: e.target.value })}
+                className="w-full p-2 border rounded"
+                required
+              >
+                <option value="student">student</option>
+                <option value="instructor">instructor</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            {!isEditing && (
               <div className="mb-4">
-                <label className="block mb-2">Username</label>
+                <label className="block mb-2">Password</label>
                 <input
-                  type="text"
-                  value={currentUser.username}
-                  onChange={(e) => setCurrentUser({
-                    ...currentUser, 
-                    username: e.target.value
-                  })}
+                  type="password"
+                  onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
                   className="w-full p-2 border rounded"
                   required
                 />
               </div>
-              <div className="mb-4">
-                <label className="block mb-2">Role</label>
-                <select
-                  value={currentUser.role}
-                  onChange={(e) => setCurrentUser({
-                    ...currentUser, 
-                    role: e.target.value
-                  })}
-                  className="w-full p-2 border rounded"
-                  required
-                >
-                  <option value="student">student</option>
-                  <option value="instructor">instructor</option>
-                  <option value="admin">admin</option>
-                </select>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button 
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                >
-                  {isEditing ? 'Update' : 'Add'}
-                </button>
-              </div>
-            </form>
+            )}
+            <div className="flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                {isEditing ? 'Update' : 'Add'}
+              </button>
+            </div>
+          </form>
           </div>
         </div>
       )}

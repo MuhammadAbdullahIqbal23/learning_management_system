@@ -1,70 +1,82 @@
 const Course = require('../models/Course');
 
 // Create a new course
-exports.createCourse = async (req, res) => {
-  const { title, description, instructor } = req.body;
-
+const createCourse = async (req, res) => {
   try {
-    const newCourse = new Course({ title, description, instructor });
-    await newCourse.save();
-    res.status(201).json({ success: true, message: 'Course created successfully', course: newCourse });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    const { title, description, instructor } = req.body;
+
+    if (!title || !description || !instructor) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const course = new Course({ title, description, instructor });
+    await course.save();
+    res.status(201).json({ success: true, course });
+  } catch (error) {
+    console.error('Error creating course:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Fetch all courses
-exports.getAllCourses = async (req, res) => {
+// Get all courses
+const getCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate('instructor', 'username');
+    const courses = await Course.find().populate('instructor', 'name email');
     res.status(200).json({ success: true, courses });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Get a single course
+const getCourseById = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id).populate('instructor', 'name email');
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.status(200).json({ success: true, course });
+  } catch (error) {
+    console.error('Error fetching course:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Update a course
+const updateCourse = async (req, res) => {
+  try {
+    const course = await Course.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.status(200).json({ success: true, course });
+  } catch (error) {
+    console.error('Error updating course:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 // Delete a course
-exports.deleteCourse = async (req, res) => {
-  const { id } = req.params;
-
+const deleteCourse = async (req, res) => {
   try {
-    await Course.findByIdAndDelete(id);
-    res.status(200).json({ success: true, message: 'Course deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-// Get course by ID
-exports.getCourseById = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const course = await Course.findById(id).populate('instructor', 'username');
+    const course = await Course.findByIdAndDelete(req.params.id);
     if (!course) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
+      return res.status(404).json({ message: 'Course not found' });
     }
-    res.status(200).json({ success: true, course });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(200).json({ success: true, message: 'Course deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
-// Get courses by category (assuming category is a field in the course schema)
-exports.getCoursesByCategory = async (req, res) => {
-  const { category } = req.params;
-
-  try {
-    const courses = await Course.find({ category }).populate('instructor', 'username');
-    if (courses.length === 0) {
-      return res.status(404).json({ success: false, message: 'No courses found in this category' });
-    }
-    res.status(200).json({ success: true, courses });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+module.exports = {
+  createCourse,
+  getCourses,
+  getCourseById,
+  updateCourse,
+  deleteCourse,
 };
