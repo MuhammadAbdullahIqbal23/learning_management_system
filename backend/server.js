@@ -2,32 +2,27 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
-// Import the UserModel model
 const User = require('./student/models/UserModel');
-
-// Import routes
 const assignmentRoutes = require('./student/routes/assignmentRoutes');
 const calendarRoutes = require('./student/routes/calendarRoutes');
 const courseRoutes = require('./student/routes/courseRoutes');
 const notificationRoutes = require('./student/routes/notificationRoutes');
 const quizRoutes = require('./student/routes/quizRoutes');
 const studentRoutes = require('./student/routes/studentRoutes');
+const loggingMiddleware = require('./student/middlewares/loggingMiddleware');
+const errorHandler = require('./student/middlewares/errorHandler');
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(loggingMiddleware); // Use logging middleware
 
 // MongoDB Connection
 mongoose
-  .connect('mongodb+srv://abdullahiqbal1133:abi54321@cluster0.gofbl0f.mongodb.net/', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('MongoDB connected successfully'))
+  .connect('mongodb+srv://mabdullahiqbal1133:abi54321@webproject.zhlok.mongodb.net/')
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes for authentication
@@ -85,6 +80,9 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/students', studentRoutes);
+
+// Use the error handler middleware
+app.use(errorHandler);
 
 // Start the server
 app.listen(port, () => {

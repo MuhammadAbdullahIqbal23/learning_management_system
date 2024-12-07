@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+// Define the schema for chat messages
 const chatSchema = new mongoose.Schema({
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -21,7 +22,7 @@ const chatSchema = new mongoose.Schema({
   },
 });
 
-// Define the 'Chat' model using the chatSchema
+// Create the Chat model from the schema
 const Chat = mongoose.model('Chat', chatSchema);
 
 // Export the model so it can be used in other files

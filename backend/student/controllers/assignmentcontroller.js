@@ -1,4 +1,4 @@
-const Assignment = require('../models/assignmentModel');
+const Assignment = require('../models/AssignmentModel');
 
 exports.createAssignment = async (req, res) => {
   try {
