@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const dotenv = require('dotenv');
 const User = require('./student/models/UserModel');
 const assignmentRoutes = require('./student/routes/assignmentRoutes');
 const calendarRoutes = require('./student/routes/calendarRoutes');
@@ -12,20 +13,35 @@ const studentRoutes = require('./student/routes/studentRoutes');
 const loggingMiddleware = require('./student/middlewares/loggingMiddleware');
 const errorHandler = require('./student/middlewares/errorHandler');
 
+// Load environment variables
+dotenv.config();
+
 const app = express();
 const port = process.env.PORT || 5001;
+
+// Validate environment variables
+if (!process.env.MONGO_URI) {
+  console.error('Error: MONGO_URI not defined in .env file');
+  process.exit(1);
+}
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(loggingMiddleware); // Use logging middleware
+app.use(loggingMiddleware);
 
 // MongoDB Connection
-mongoose
-  .connect('mongodb+srv://mabdullahiqbal1133:abi54321@webproject.zhlok.mongodb.net/')
-  .catch((err) => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  });
 
-// Routes for authentication
+// Authentication Routes
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -81,7 +97,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/quizzes', quizRoutes);
 app.use('/api/students', studentRoutes);
 
-// Use the error handler middleware
+// Error handling middleware
 app.use(errorHandler);
 
 // Start the server
