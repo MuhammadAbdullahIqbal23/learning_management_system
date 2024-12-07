@@ -1,15 +1,27 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const User = require('./models/User'); 
 const bcrypt = require('bcryptjs');
 
-const app = express();
-const port = 5000;
+// Import the UserModel model
+const User = require('./student/models/UserModel');
 
+// Import routes
+const assignmentRoutes = require('./student/routes/assignmentRoutes');
+const calendarRoutes = require('./student/routes/calendarRoutes');
+const courseRoutes = require('./student/routes/courseRoutes');
+const notificationRoutes = require('./student/routes/notificationRoutes');
+const quizRoutes = require('./student/routes/quizRoutes');
+const studentRoutes = require('./student/routes/studentRoutes');
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// MongoDB Connection
 mongoose
   .connect('mongodb+srv://abdullahiqbal1133:abi54321@cluster0.gofbl0f.mongodb.net/', {
     useNewUrlParser: true,
@@ -18,6 +30,7 @@ mongoose
   .then(() => console.log('MongoDB connected successfully'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
+// Routes for authentication
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -65,6 +78,15 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+// Routes for other modules
+app.use('/api/assignments', assignmentRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/quizzes', quizRoutes);
+app.use('/api/students', studentRoutes);
+
+// Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
