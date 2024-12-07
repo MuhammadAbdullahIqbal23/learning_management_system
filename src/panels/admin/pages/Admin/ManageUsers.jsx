@@ -1,7 +1,231 @@
 import React, { useState, useEffect } from 'react';
+import styled, { createGlobalStyle } from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Users as UsersIcon, 
+  Edit, 
+  Trash2, 
+  PlusCircle, 
+  AlertTriangle 
+} from 'lucide-react';
 
+// Global Styles
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #f4f6f9;
+  }
+`;
+
+// Styled Components
+const PageContainer = styled.div`
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e9f0f9 0%, #d6e2f0 100%);
+  padding: 2rem;
+  box-sizing: border-box;
+`;
+
+const UserManagementCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+`;
+
+const PageHeader = styled.div`
+  background-color: #3b82f6;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+`;
+
+const HeaderTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+`;
+
+const AddUserButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  color: #3b82f6;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+`;
+
+const UserTable = styled.table`
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  thead {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+
+  th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  tbody tr {
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f9fafb;
+    }
+  }
+`;
+
+const RoleBadge = styled.span`
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  ${props => {
+    switch(props.role) {
+      case 'admin':
+        return 'background-color: #fee2e2; color: #b91c1c;';
+      case 'instructor':
+        return 'background-color: #d1fae5; color: #064e3b;';
+      default:
+        return 'background-color: #e0f2fe; color: #0c4a6e;';
+    }
+  }}
+`;
+
+const ActionButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: ${props => props.color || '#3b82f6'};
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: ${props => props.hoverColor || '#2563eb'};
+  }
+`;
+
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+`;
+
+const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    transition: border-color 0.3s;
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+  }
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+`;
+
+const SubmitButton = styled.button`
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+`;
+
+const CancelButton = styled.button`
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e5e7eb;
+  }
+`;
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,14 +239,26 @@ const ManageUsers = () => {
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
 
+  // Function to get the authentication token
+  const getToken = () => {
+    return localStorage.getItem('token');
+  };
+
+  // Function to handle token-related errors
+  const handleTokenError = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const fetchUsers = async () => {
+    const token = getToken();
+    
+    if (!token) {
+      handleTokenError();
+      return;
+    }
+
     try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
-
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
-
       const response = await axios.get('http://localhost:5002/api/admin/users', {
         headers: {
           Authorization: `Bearer ${token}`
@@ -37,8 +273,7 @@ const ManageUsers = () => {
       setLoading(false);
 
       if (err.response?.status === 401) {
-        localStorage.removeItem('token');
-        navigate('/login');
+        handleTokenError();
       }
     }
   };
@@ -51,12 +286,13 @@ const ManageUsers = () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this user?');
     if (!confirmDelete) return;
 
-    try {
-      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
-      if (!token) {
-        throw new Error('No authentication token found. Please log in.');
-      }
+    const token = getToken();
+    if (!token) {
+      handleTokenError();
+      return;
+    }
 
+    try {
       await axios.delete(`http://localhost:5002/api/admin/user/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
@@ -67,6 +303,12 @@ const ManageUsers = () => {
       alert('User deleted successfully');
     } catch (err) {
       console.error('Error deleting user:', err);
+      
+      if (err.response?.status === 401) {
+        handleTokenError();
+        return;
+      }
+      
       alert(err.response?.data?.message || 'Error deleting user');
     }
   };
@@ -92,11 +334,10 @@ const ManageUsers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NTNmMDM5NWU3MjcwMmNlYzFiOGNjMyIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTczMzU3OTI3OCwiZXhwIjoxNzMzNTgyODc4fQ.Zg_Na4IFv3VUt0eFZo5RCPNvw1GoKrxGIZtRv8xt2zI";
+    const token = getToken();
   
     if (!token) {
-      alert('No authentication token found. Please log in.');
-      navigate('/login');
+      handleTokenError();
       return;
     }
   
@@ -153,6 +394,11 @@ const ManageUsers = () => {
     } catch (err) {
       console.error('Error saving user:', err);
       
+      if (err.response?.status === 401) {
+        handleTokenError();
+        return;
+      }
+      
       // More specific error handling
       if (err.response?.data?.message.includes('username already exists')) {
         alert('A user with this username already exists.');
@@ -161,111 +407,133 @@ const ManageUsers = () => {
       }
     }
   };  
-  
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="text-center">
+        <div className="animate-spin w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+        <p className="text-blue-600 font-semibold">Loading Users...</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex justify-center items-center min-h-screen bg-red-50">
+      <div className="bg-white shadow-xl rounded-lg p-8 text-center border-2 border-red-200">
+        <AlertTriangle className="mx-auto text-red-500 mb-4" size={48} />
+        <p className="text-red-600 font-bold text-lg">{error}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Manage Users</h1>
-        <button
-          onClick={() => openModal()}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-        >
-          Add New User
-        </button>
-      </div>
+    <>
+      <GlobalStyle />
+      <PageContainer>
+        <UserManagementCard>
+          <PageHeader>
+            <HeaderTitle>
+              <UsersIcon size={32} />
+              <h1>User Management</h1>
+            </HeaderTitle>
+            <AddUserButton onClick={() => openModal()}>
+              <PlusCircle size={18} />
+              Add New User
+            </AddUserButton>
+          </PageHeader>
 
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2 text-left">Name</th>
-            <th className="border p-2 text-left">Role</th>
-            <th className="border p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user._id} className="hover:bg-gray-100">
-              <td className="border p-2">{user.username}</td>
-              <td className="border p-2">{user.role}</td>
-              <td className="border p-2 space-x-2">
-                <button
-                  onClick={() => openModal(user)}
-                  className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteUser(user._id)}
-                  className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <UserTable>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.username}</td>
+                  <td>
+                    <RoleBadge role={user.role}>
+                      {user.role}
+                    </RoleBadge>
+                  </td>
+                  <td>
+                    <ActionButton 
+                      onClick={() => openModal(user)}
+                      color="#3b82f6"
+                      hoverColor="#2563eb"
+                    >
+                      <Edit size={18} />
+                    </ActionButton>
+                    <ActionButton 
+                      onClick={() => deleteUser(user._id)}
+                      color="#ef4444"
+                      hoverColor="#dc2626"
+                    >
+                      <Trash2 size={18} />
+                    </ActionButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </UserTable>
+        </UserManagementCard>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">{isEditing ? 'Edit User' : 'Add New User'}</h2>
-            <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block mb-2">Username</label>
-              <input
-                type="text"
-                value={currentUser.username}
-                onChange={(e) => setCurrentUser({ ...currentUser, username: e.target.value })}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2">Role</label>
-              <select
-                value={currentUser.role}
-                onChange={(e) => setCurrentUser({ ...currentUser, role: e.target.value })}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="student">student</option>
-                <option value="instructor">instructor</option>
-                <option value="admin">admin</option>
-              </select>
-            </div>
-            {!isEditing && (
-              <div className="mb-4">
-                <label className="block mb-2">Password</label>
-                <input
-                  type="password"
-                  onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-            )}
-            <div className="flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                {isEditing ? 'Update' : 'Add'}
-              </button>
-            </div>
-          </form>
-          </div>
-        </div>
-      )}
-    </div>
+        {isModalOpen && (
+          <Modal>
+            <ModalContent>
+              <CloseButton onClick={() => setIsModalOpen(false)}>
+                ✕
+              </CloseButton>
+              <h2>{isEditing ? 'Edit User' : 'Add New User'}</h2>
+              <Form onSubmit={handleSubmit}>
+                <div>
+                  <label>Username</label>
+                  <input
+                    type="text"
+                    value={currentUser.username}
+                    onChange={(e) => setCurrentUser({ ...currentUser, username: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label>Role</label>
+                  <select
+                    value={currentUser.role}
+                    onChange={(e) => setCurrentUser({ ...currentUser, role: e.target.value })}
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="instructor">Instructor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                {!isEditing && (
+                  <div>
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      onChange={(e) => setCurrentUser({ ...currentUser, password: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+                <FormActions>
+                  <CancelButton type="button" onClick={() => setIsModalOpen(false)}>
+                    Cancel
+                  </CancelButton>
+                  <SubmitButton type="submit">
+                    {isEditing ? 'Update' : 'Add'}
+                  </SubmitButton>
+                </FormActions>
+              </Form>
+            </ModalContent>
+          </Modal>
+        )}
+      </PageContainer>
+    </>
   );
 };
 

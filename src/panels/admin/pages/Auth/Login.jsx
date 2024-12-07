@@ -16,7 +16,7 @@ const Login = () => {
     if (loading) return;
     setLoading(true);
     setError(null);
-
+  
     try {
       const response = await fetch("http://localhost:5002/api/auth/login", {
         method: "POST",
@@ -25,16 +25,17 @@ const Login = () => {
         },
         body: JSON.stringify({ username, password }),
       });
-
+  
       const data = await response.json();
       if (!response.ok) {
         setError(data.message || "Login failed. Please check your credentials.");
         setLoading(false);
         return;
       }
-
+  
       if (data.success) {
         alert("Login Successful!");
+        localStorage.setItem('token', data.token); // or sessionStorage.setItem('token', data.token)
         navigate("/admin");
       }
     } catch (error) {
@@ -50,7 +51,7 @@ const Login = () => {
     if (loading) return;
     setLoading(true);
     setError(null);
-
+  
     try {
       console.log('Register', username, password, role)
       const response = await fetch("http://localhost:5002/api/auth/register", {
@@ -60,16 +61,17 @@ const Login = () => {
         },
         body: JSON.stringify({ username, password, role }),
       });
-
+  
       const data = await response.json();
       if (!response.ok) {
         setError(data.message || "Registration failed. Please try again.");
         setLoading(false);
         return;
       }
-
+  
       if (data.success) {
         alert("Registration Successful!");
+        localStorage.setItem('token', data.token); // or sessionStorage.setItem('token', data.token)
         setIsRegistering(false);
       }
     } catch (error) {

@@ -19,7 +19,7 @@ const Dashboard = () => {
               { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
               { to: '/admin/manageusers', icon: Users, label: 'Manage Users' },
               { to: '/admin/courses', icon: BookOpen, label: 'Courses Management' },
-              { to: '/student/enrolled', icon: GraduationCap, label: 'Enrolled Students' },
+              { to: '/admin/enrolled', icon: GraduationCap, label: 'Enrolled Students' },
               { to: '/reports', icon: BarChart, label: 'Reports' },
             ].map(({ to, icon: Icon, label }) => (
               <li key={label}>
