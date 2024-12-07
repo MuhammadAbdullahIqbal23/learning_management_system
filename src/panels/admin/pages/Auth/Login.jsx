@@ -1,22 +1,24 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import "./login.css";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("Student"); 
+  const [role, setRole] = useState("student");
   const [loading, setLoading] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false); 
+  const [error, setError] = useState(null); // New error state
+  const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch("http://localhost:5002/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,22 +26,20 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        alert("Login failed. Please check your credentials.");
+        setError(data.message || "Login failed. Please check your credentials.");
         setLoading(false);
         return;
       }
 
-      const data = await response.json();
       if (data.success) {
         alert("Login Successful!");
-        navigate("/admin"); 
-      } else {
-        alert(data.message || "Login Failed!");
+        navigate("/admin");
       }
     } catch (error) {
+      setError("An error occurred while connecting to the server.");
       console.error("Error during login:", error);
-      alert("An error occurred while connecting to the server.");
     } finally {
       setLoading(false);
     }
@@ -49,9 +49,11 @@ const Login = () => {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch("http://localhost:5000/api/register", {
+      console.log('Register', username, password, role)
+      const response = await fetch("http://localhost:5002/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -59,22 +61,20 @@ const Login = () => {
         body: JSON.stringify({ username, password, role }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        alert("Registration failed. Please try again.");
+        setError(data.message || "Registration failed. Please try again.");
         setLoading(false);
         return;
       }
 
-      const data = await response.json();
       if (data.success) {
         alert("Registration Successful!");
-        setIsRegistering(false); 
-      } else {
-        alert(data.message || "Registration Failed!");
+        setIsRegistering(false);
       }
     } catch (error) {
+      setError("An error occurred while connecting to the server.");
       console.error("Error during registration:", error);
-      alert("An error occurred while connecting to the server.");
     } finally {
       setLoading(false);
     }
@@ -100,6 +100,7 @@ const Login = () => {
             className="login-form"
             onSubmit={isRegistering ? handleRegister : handleLogin}
           >
+            {error && <div className="error-message">{error}</div>} {/* Error message */}
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
@@ -109,6 +110,7 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
                 required
+                disabled={loading} // Disable input while loading
               />
             </div>
             <div className="form-group">
@@ -120,6 +122,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
+                disabled={loading} // Disable input while loading
               />
             </div>
             {isRegistering && (
@@ -130,17 +133,18 @@ const Login = () => {
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   required
+                  disabled={loading} // Disable input while loading
                 >
-                  <option value="Student">Student</option>
-                  <option value="Instructor">Instructor</option>
-                  <option value="Admin">Admin</option>
+                  <option value="student">student</option>
+                  <option value="instructor">instructor</option>
+                  <option value="admin">admin</option>
                 </select>
               </div>
             )}
             <button
               type="submit"
               className="login-button"
-              disabled={loading}
+              disabled={loading} // Disable button while loading
             >
               {loading
                 ? isRegistering
