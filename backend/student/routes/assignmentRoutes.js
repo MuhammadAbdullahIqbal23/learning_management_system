@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const assignmentController = require('../controllers/assignmentController');
+const assignmentController = require('../controllers/assignmentcontroller');
 
 // Routes for assignments
 router.post('/', assignmentController.createAssignment); // Create a new assignment
