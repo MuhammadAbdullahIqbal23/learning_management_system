@@ -1,37 +1,51 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Dashboard from './panels/admin/pages/Admin/Dashboard';
-import Login from './panels/admin/pages/Auth/Login';
-import Register from './panels/admin/pages/Auth/Register';
-import ManageUsers from './panels/admin/pages/Admin/ManageUsers';
-import ManageCourses from './panels/admin/pages/Admin/ManageCourses';
-import ManageInstructors from './panels/admin/pages/Admin/manageIntructors';
-import StudentCoursesDashboard from './panels/admin/pages/Admin/studentCourseEnrollment';
-import Chatbot from './panels/admin/components/Chatbot/Chatbot'; // Import Chatbot
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import StudentDashboard from './panels/students front/components/pages/StudentDashboard';
+
+
+// Auth component (placeholder)
+const RequireAuth = ({ children }) => {
+  // Add your authentication logic here
+  const isAuthenticated = true; // Replace with actual auth check
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
 
 const App = () => {
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<Dashboard />}>
-            <Route index element={<Navigate to="/admin/dashboard" />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="manageusers" element={<ManageUsers />} />
-            <Route path="courses" element={<ManageCourses />} />
-            <Route path="enrolled" element={<StudentCoursesDashboard />} />
-            <Route path="manageinstructors" element={<ManageInstructors />} />
-          </Route>
-          <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-        </Routes>
+      <Routes>
+        {/* Redirect root to dashboard */}
+        <Route path="/" element={<Navigate to="/student/dashboard" replace />} />
         
-        {/* Global Chatbot */}
-        <Chatbot />
-      </div>
+        {/* Protected student routes */}
+        <Route
+          path="/student/*"
+          element={
+            <RequireAuth>
+              <StudentDashboard />
+            </RequireAuth>
+          }
+        >
+          <Route path="dashboard" element={<div>Dashboard Home</div>} />
+          {/* <Route path="courses/*" element={<Courses />} /> */}
+          {/* <Route path="assignments/*" element={<Assignments />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="profile" element={<Profile />} /> */}
+        </Route>
+
+        {/* Auth routes */}
+        <Route path="/login" element={<div>Login Page</div>} />
+        <Route path="/forgot-password" element={<div>Forgot Password Page</div>} />
+        
+        {/* 404 route */}
+        <Route path="*" element={<div>Page Not Found</div>} />
+      </Routes>
     </Router>
   );
 };
