@@ -29,6 +29,7 @@ app.use('/api/instructor', instructorRoutes); // Instructor-specific routes
 app.use('/api/student', studentRoutes); // Student-specific routes
 app.use('/api/courses', courseRoutes); // Course management routes
 
+
 // Error handling middleware
 app.use(errorMiddleware); // Catch-all error handler
 

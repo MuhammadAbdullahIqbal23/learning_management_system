@@ -13,26 +13,67 @@ exports.getEnrolledCourses = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-
+router.get('/api/student', async (req, res) => {
+  try {
+    // Fetch users where role is 'student'
+    const students = await User.find({ role: 'student' }).select('_id username email');
+    res.status(200).json({ student: students });
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({ message: 'Failed to fetch students' });
+  }
+});
 // Enroll in a course
+// exports.enrollInCourse = async (req, res) => {
+//   const { studentId, courseId } = req.body;
+
+//   try {
+//     const course = await Course.findById(courseId);
+//     if (!course) {
+//       return res.status(404).json({ success: false, message: 'Course not found' });
+//     }
+
+//     if (!course.students.includes(studentId)) {
+//       course.students.push(studentId);
+//       await course.save();
+//     }
+
+//     res.status(200).json({ success: true, message: 'Enrolled successfully', course });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ success: false, message: 'Server error' });
+//   }
+// };
+
 exports.enrollInCourse = async (req, res) => {
   const { studentId, courseId } = req.body;
 
   try {
+    // Find the course
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
+      return res.status(404).json({ success: false, message: "Course not found" });
     }
 
-    if (!course.students.includes(studentId)) {
-      course.students.push(studentId);
-      await course.save();
+    // Find the student
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
     }
 
-    res.status(200).json({ success: true, message: 'Enrolled successfully', course });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    // Check if already enrolled
+    if (course.students.includes(studentId)) {
+      return res.status(400).json({ success: false, message: "Student already enrolled" });
+    }
+
+    // Enroll student
+    course.students.push(studentId);
+    await course.save();
+
+    res.status(200).json({ success: true, message: "Student enrolled successfully" });
+  } catch (error) {
+    console.error("Enrollment error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 

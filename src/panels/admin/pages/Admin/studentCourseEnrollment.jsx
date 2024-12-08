@@ -1,196 +1,178 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Badge } from '../../components/ui/badge';
-import { RefreshCcw } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import axios from "axios";
 
-const UserCoursesDashboard = () => {
-  const [usersWithCourses, setUsersWithCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+// Styled Components
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background-color: #f4f6f9;
+  min-height: 100vh;
+`;
 
-  const fetchUsersWithEnrollments = async () => {
+const EnrollmentCard = styled.div`
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+  padding: 2rem;
+`;
+
+const Title = styled.h2`
+  margin-bottom: 1rem;
+  color: #3b82f6;
+  text-align: center;
+`;
+
+const Label = styled.label`
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+  }
+`;
+
+const Button = styled.button`
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #2563eb;
+  }
+`;
+
+const Error = styled.div`
+  color: #b91c1c;
+  margin-bottom: 1rem;
+`;
+
+const EnrollStudents = () => {
+  const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchStudents();
+    fetchCourses();
+  }, []);
+
+  const fetchStudents = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch all users instead of just students
-      const usersResponse = await fetch('http://localhost:5002/api/users');
-      if (!usersResponse.ok) {
-        throw new Error(`Unable to fetch users (Status: ${usersResponse.status}). Please check if the server is running and the endpoint exists.`);
+      const response = await axios.get("http://localhost:5002/api/admin/users");
+      console.log("API Response for users:", response.data); // Log API response
+  
+      if (response.data && response.data.users) {
+        const filteredStudents = response.data.users.filter(
+          (user) => user.role === "student"
+        );
+        console.log("Filtered students:", filteredStudents); // Log filtered students
+        setStudents(filteredStudents);
+      } else {
+        setError("Failed to fetch students. No users data found.");
       }
-      const usersData = await usersResponse.json();
-
-      // Fetch enrollments and course details for each user
-      const usersWithData = await Promise.all(
-        usersData.users.map(async (user) => {
-          try {
-            // Only fetch enrollments for students
-            if (user.role === 'student') {
-              const enrollmentsResponse = await fetch(`http://localhost:5002/api/enrollments?studentId=${user._id}`);
-              if (!enrollmentsResponse.ok) {
-                throw new Error(`Failed to fetch enrollments for ${user.username}`);
-              }
-              const enrollmentsData = await enrollmentsResponse.json();
-
-              // Fetch course details for each enrollment
-              const coursesDetails = await Promise.all(
-                enrollmentsData.enrollments.map(async (enrollment) => {
-                  const courseResponse = await fetch(`http://localhost:5002/api/courses/${enrollment.courseId}`);
-                  if (!courseResponse.ok) {
-                    throw new Error(`Failed to fetch course details`);
-                  }
-                  const courseData = await courseResponse.json();
-                  return {
-                    ...courseData.course,
-                    enrollmentStatus: enrollment.status,
-                  };
-                })
-              );
-
-              return {
-                ...user,
-                enrolledCourses: coursesDetails,
-              };
-            }
-            // Return user without enrollments for non-students
-            return {
-              ...user,
-              enrolledCourses: [],
-            };
-          } catch (err) {
-            console.error(`Error fetching data for user ${user.username}:`, err);
-            return {
-              ...user,
-              enrolledCourses: [],
-              error: err.message,
-            };
-          }
-        })
-      );
-
-      setUsersWithCourses(usersWithData);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching students:", err);
+      setError("Error fetching students."); // Update error state
+    }
+  };
+  
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get("http://localhost:5002/api/courses");
+      if (response.data && response.data.courses) {
+        setCourses(response.data.courses);
+      } else {
+        setError("Failed to fetch courses.");
+      }
+    } catch (err) {
+      console.error("Error fetching courses:", err);
+      setError("Error fetching courses.");
     }
   };
 
-  useEffect(() => {
-    fetchUsersWithEnrollments();
-  }, []);
+  const handleEnrollment = async () => {
+    if (!selectedStudent || !selectedCourse) {
+      setError("Please select both a student and a course.");
+      return;
+    }
+    setError(""); // Clear previous errors
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <div className="animate-spin">
-          <RefreshCcw className="w-8 h-8 text-blue-500" />
-        </div>
-        <p className="text-lg text-gray-600">Loading users and their courses...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Dashboard</h2>
-              <p className="text-red-600 mb-4">{error}</p>
-              <button
-                onClick={fetchUsersWithEnrollments}
-                className="px-4 py-2 bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    try {
+      const payload = {
+        studentId: selectedStudent,
+        courseId: selectedCourse,
+      };
+      const response = await axios.post(
+        "http://localhost:5002/api/student/enroll",
+        payload
+      );
+      alert(response.data.message || "Student enrolled successfully.");
+    } catch (err) {
+      console.error("Error enrolling student:", err);
+      setError("Enrollment failed. Please try again.");
+    }
+  };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Users Dashboard</h1>
-        <button
-          onClick={fetchUsersWithEnrollments}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          <RefreshCcw className="w-4 h-4" />
-          Refresh
-        </button>
-      </div>
+    <PageContainer>
+      <EnrollmentCard>
+        <Title>Enroll Students in Courses</Title>
+        {error && <Error>{error}</Error>}
 
-      {usersWithCourses.length === 0 ? (
-        <Card className="text-center p-6">
-          <CardContent>
-            <p className="text-gray-500">No users found in the system</p>
-          </CardContent>
-        </Card>
-      ) : (
-        usersWithCourses.map((user) => (
-          <Card key={user._id} className="mb-6 shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-3">
-                {user.username}
-                <Badge variant={user.role === 'student' ? 'secondary' : 'outline'}>
-                  {user.role}
-                </Badge>
-              </CardTitle>
-              <span className="text-sm text-gray-500">
-                Joined: {new Date(user.createdAt).toLocaleDateString()}
-              </span>
-            </CardHeader>
-            <CardContent>
-              {user.error ? (
-                <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-md border border-red-200">
-                  {user.error}
-                </div>
-              ) : user.role !== 'student' ? (
-                <p className="text-center text-gray-500">Not a student user</p>
-              ) : user.enrolledCourses.length === 0 ? (
-                <p className="text-center text-gray-500">No courses enrolled</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Course Title</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Enrollment Status</TableHead>
-                      <TableHead className="text-right">Enrolled Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {user.enrolledCourses.map((course) => (
-                      <TableRow key={course._id}>
-                        <TableCell className="font-medium">{course.title}</TableCell>
-                        <TableCell>{course.description}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={course.enrollmentStatus === 'active' ? 'default' : 'destructive'}
-                          >
-                            {course.enrollmentStatus}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {new Date(course.createdAt).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
+        <Label htmlFor="student-select">Select Student</Label>
+        <Select
+          id="student-select"
+          value={selectedStudent}
+          onChange={(e) => setSelectedStudent(e.target.value)}
+        >
+          <option value="">-- Select Student --</option>
+          {students.map((student) => (
+            <option key={student._id} value={student._id}>
+              {student.username || student.name} {/* Ensure correct field */}
+            </option>
+          ))}
+        </Select>
+
+        <Label htmlFor="course-select">Select Course</Label>
+        <Select
+          id="course-select"
+          value={selectedCourse}
+          onChange={(e) => setSelectedCourse(e.target.value)}
+        >
+          <option value="">-- Select Course --</option>
+          {courses.map((course) => (
+            <option key={course._id} value={course._id}>
+              {course.title}
+            </option>
+          ))}
+        </Select>
+
+        <Button onClick={handleEnrollment}>Enroll Student</Button>
+      </EnrollmentCard>
+    </PageContainer>
   );
 };
 
-export default UserCoursesDashboard;
+export default EnrollStudents;
