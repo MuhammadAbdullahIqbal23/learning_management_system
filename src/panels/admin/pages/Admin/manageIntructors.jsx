@@ -196,7 +196,7 @@ const ManageInstructors = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentInstructor, setCurrentInstructor] = useState({ name: '', _id: null });
+  const [currentInstructor, setCurrentInstructor] = useState({ username: '', _id: null });
   const [isEditing, setIsEditing] = useState(false);
   const navigate = useNavigate();
 
@@ -214,8 +214,9 @@ const ManageInstructors = () => {
       const { data } = await axios.get('http://localhost:5002/api/admin/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
-
+      console.log(data);
       const filteredInstructors = data.users.filter((user) => user.role === 'instructor');
+      console.log(filteredInstructors);
       setInstructors(filteredInstructors);
     } catch (err) {
       setError(err.response?.data?.message || 'Error loading instructors');
@@ -277,48 +278,48 @@ const ManageInstructors = () => {
           </PageHeader>
           <DataTable>
           <thead>
-  <tr>
-    <th>Name</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-<tbody>
-  {instructors.map((inst) => (
-    <tr key={inst._id}>
-      <td>{inst.name}</td>
-      <td>
-        <ActionButton onClick={() => {
-          setCurrentInstructor(inst);
-          setIsEditing(true);
-          setIsModalOpen(true);
-        }}>
-          <Edit />
-        </ActionButton>
-        <ActionButton
-          onClick={async () => {
-            const confirm = window.confirm('Are you sure you want to delete this instructor?');
-            if (!confirm) return;
-            try {
-              const token = getToken();
-              await axios.delete(`http://localhost:5002/api/instructors/${inst._id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              setInstructors(instructors.filter((i) => i._id !== inst._id));
-            } catch (err) {
-              console.error(err);
-              if (err.response?.status === 401) handleTokenError();
-              else alert(err.response?.data?.message || 'Error deleting instructor');
-            }
-          }}
-          color="red"
-          hoverColor="darkred"
-        >
-          <Trash2 />
-        </ActionButton>
-      </td>
-    </tr>
-  ))}
-</tbody>
+            <tr>
+              <th>Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {instructors.map((inst) => (
+              <tr key={inst._id}>
+                <td>{inst.username}</td>
+                <td>
+                  <ActionButton onClick={() => {
+                    setCurrentInstructor(inst);
+                    setIsEditing(true);
+                    setIsModalOpen(true);
+                  }}>
+                    <Edit />
+                  </ActionButton>
+                  <ActionButton
+                    onClick={async () => {
+                      const confirm = window.confirm('Are you sure you want to delete this instructor?');
+                      if (!confirm) return;
+                      try {
+                        const token = getToken();
+                        await axios.delete(`http://localhost:5002/api/instructors/${inst._id}`, {
+                          headers: { Authorization: `Bearer ${token}` },
+                        });
+                        setInstructors(instructors.filter((i) => i._id !== inst._id));
+                      } catch (err) {
+                        console.error(err);
+                        if (err.response?.status === 401) handleTokenError();
+                        else alert(err.response?.data?.message || 'Error deleting instructor');
+                      }
+                    }}
+                    color="red"
+                    hoverColor="darkred"
+                  >
+                    <Trash2 />
+                  </ActionButton>
+                </td>
+              </tr>
+            ))}
+          </tbody>
 
           </DataTable>
         </ManagementCard>
@@ -333,8 +334,8 @@ const ManageInstructors = () => {
               <label>Name</label>
               <input
                 type="text"
-                value={currentInstructor.name}
-                onChange={(e) => setCurrentInstructor({ ...currentInstructor, name: e.target.value })}
+                value={currentInstructor.username}
+                onChange={(e) => setCurrentInstructor({ ...currentInstructor, username: e.target.value })}
                 required
               />
               <FormActions>
