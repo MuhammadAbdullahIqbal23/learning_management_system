@@ -13,16 +13,16 @@ exports.getEnrolledCourses = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
-router.get('/api/student', async (req, res) => {
-  try {
-    // Fetch users where role is 'student'
-    const students = await User.find({ role: 'student' }).select('_id username email');
-    res.status(200).json({ student: students });
-  } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).json({ message: 'Failed to fetch students' });
-  }
-});
+// exports.get('/api/student', async (req, res) => {
+//   try {
+//     // Fetch users where role is 'student'
+//     const students = await User.find({ role: 'student' }).select('_id username email');
+//     res.status(200).json({ student: students });
+//   } catch (error) {
+//     console.error('Error fetching students:', error);
+//     res.status(500).json({ message: 'Failed to fetch students' });
+//   }
+// });
 // Enroll in a course
 // exports.enrollInCourse = async (req, res) => {
 //   const { studentId, courseId } = req.body;

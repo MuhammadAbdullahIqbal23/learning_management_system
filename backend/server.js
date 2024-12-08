@@ -21,7 +21,7 @@ connectDB();
 // Middleware setup
 app.use(cors());
 app.use(express.json()); // Parse JSON bodies
-
+app.use('/api/student', studentRoutes);
 // API routes
 app.use('/api/auth', authRoutes); // Authentication routes
 app.use('/api/admin', adminRoutes); // Admin-specific routes
