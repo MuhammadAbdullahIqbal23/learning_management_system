@@ -1,4 +1,7 @@
 const express = require('express');
+const session = require('express-session');
+const passport = require('passport');
+require('./config/passport');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -14,7 +17,14 @@ dotenv.config();
 
 // Initialize express app
 const app = express();
+app.use(session({
+  secret: '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',
+  resave: false,
+  saveUninitialized: true
+}));
 
+app.use(passport.initialize());
+app.use(passport.session());
 // Connect to MongoDB
 connectDB();
 

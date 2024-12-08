@@ -1,16 +1,24 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
+import {GoogleLogin} from 'react-google-login';
+const clientID ="218282484846-v50d8lpi23n4gak9812d88bfh9km0cb1.apps.googleusercontent.com";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null); // New error state
+  const [error, setError] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
 
+  const handleGoogleLogin = () => {
+    // Redirect to backend Google OAuth route
+    window.location.href = "http://localhost:5002/api/auth/google";
+  };
+  
+  // Add to your existing Login component
   const handleLogin = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -35,7 +43,7 @@ const Login = () => {
   
       if (data.success) {
         alert("Login Successful!");
-        localStorage.setItem('token', data.token); // or sessionStorage.setItem('token', data.token)
+        localStorage.setItem('token', data.token);
         navigate("/admin");
       }
     } catch (error) {
@@ -53,7 +61,6 @@ const Login = () => {
     setError(null);
   
     try {
-      console.log('Register', username, password, role)
       const response = await fetch("http://localhost:5002/api/auth/register", {
         method: "POST",
         headers: {
@@ -71,7 +78,7 @@ const Login = () => {
   
       if (data.success) {
         alert("Registration Successful!");
-        localStorage.setItem('token', data.token); // or sessionStorage.setItem('token', data.token)
+        localStorage.setItem('token', data.token);
         setIsRegistering(false);
       }
     } catch (error) {
@@ -102,7 +109,7 @@ const Login = () => {
             className="login-form"
             onSubmit={isRegistering ? handleRegister : handleLogin}
           >
-            {error && <div className="error-message">{error}</div>} {/* Error message */}
+            {error && <div className="error-message">{error}</div>}
             <div className="form-group">
               <label htmlFor="username">Username</label>
               <input
@@ -112,7 +119,7 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
                 required
-                disabled={loading} // Disable input while loading
+                disabled={loading}
               />
             </div>
             <div className="form-group">
@@ -124,7 +131,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
                 required
-                disabled={loading} // Disable input while loading
+                disabled={loading}
               />
             </div>
             {isRegistering && (
@@ -135,7 +142,7 @@ const Login = () => {
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   required
-                  disabled={loading} // Disable input while loading
+                  disabled={loading}
                 >
                   <option value="student">student</option>
                   <option value="instructor">instructor</option>
@@ -146,7 +153,7 @@ const Login = () => {
             <button
               type="submit"
               className="login-button"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               {loading
                 ? isRegistering
@@ -157,6 +164,27 @@ const Login = () => {
                 : "Login"}
             </button>
           </form>
+
+          {/* Google Login Button */}
+          {!isRegistering && (
+            <div className="google-login-section">
+              <div className="separator">
+                <span>or</span>
+              </div>
+              <button 
+                onClick={handleGoogleLogin}
+                className="google-login-button"
+              >
+                <img 
+                  src="https://www.svgrepo.com/show/303281/google-logo-2015.svg" 
+                  alt="Google logo" 
+                  className="google-logo"
+                />
+                Continue with Google
+              </button>
+            </div>
+          )}
+
           <p className="login-footer">
             {isRegistering ? (
               <>

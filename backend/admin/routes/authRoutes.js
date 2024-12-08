@@ -18,4 +18,24 @@ router.post('/register', validateRegistration, handleValidationErrors, authContr
 // User Login Route
 router.post('/login', validateLogin, handleValidationErrors, authController.login);
 
+// Initiate Google OAuth
+router.get('/auth/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })
+);
+
+router.get('/auth/google/callback',
+  passport.authenticate('google', { session: false }),
+  (req, res) => {
+    // Redirect with token to frontend
+    res.redirect(`http://localhost:3000/oauth-callback?token=${req.user.token}`);
+  }
+);
+// Logout route
+router.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
 module.exports = router;

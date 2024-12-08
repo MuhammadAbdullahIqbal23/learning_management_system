@@ -19,7 +19,18 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },  googleId: {
+    type: String,
+    unique: true,
+    sparse: true  // Allows multiple null values
   },
+  email: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  name: String,
+  profilePicture: String
 });
 
 module.exports = mongoose.model('User', userSchema);

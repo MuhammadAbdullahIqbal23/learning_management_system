@@ -1,6 +1,7 @@
 const express = require('express');
 const { authMiddleware, adminMiddleware } = require('../middlewares/authMiddleware');
 const courseController = require('../controllers/courseController');
+const studentController = require('../controllers/studentController');
 
 const router = express.Router();
 
@@ -18,5 +19,9 @@ router.put('/:id', authMiddleware, adminMiddleware, courseController.updateCours
 
 // Delete a course (Admin only)
 router.delete('/:id', authMiddleware, adminMiddleware, courseController.deleteCourse);
+
+// Get enrolled students for a specific course
+router.get('/:id/enrolled-students', authMiddleware, adminMiddleware, studentController.getEnrolledStudents);
+
 
 module.exports = router;

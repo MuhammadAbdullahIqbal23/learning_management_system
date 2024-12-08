@@ -1,7 +1,7 @@
   const Course = require("../models/Course");
   const User = require("../models/User");
   const Enrollment = require("../models/Enrollment");
-
+  const mongoose = require('mongoose');
   // Get enrolled courses for a student
   exports.getEnrolledCourses = async (req, res) => {
     try {
@@ -132,3 +132,114 @@
   exports.getGrades = async (req, res) => {
     res.status(501).json({ message: "Not implemented" });
   };
+ 
+
+// Enroll a student in a course
+exports.enrollInCourse = async (req, res) => {
+  try {
+    const { studentId, courseId } = req.body;
+
+    // Validate input
+    if (!studentId || !courseId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Student ID and Course ID are required' 
+      });
+    }
+
+    // Check if student exists
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Student not found' 
+      });
+    }
+
+    // Check if course exists
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Course not found' 
+      });
+    }
+
+    // Check if already enrolled
+    const existingEnrollment = await Enrollment.findOne({
+      studentId,
+      courseId
+    });
+
+    if (existingEnrollment) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Student is already enrolled in this course' 
+      });
+    }
+
+    // Create new enrollment
+    const newEnrollment = new Enrollment({
+      studentId,
+      courseId
+    });
+
+    await newEnrollment.save();
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Student enrolled successfully',
+      enrollment: newEnrollment
+    });
+
+  } catch (error) {
+    console.error('Enrollment error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error during enrollment' 
+    });
+  }
+};
+
+// Get enrolled students for a specific course
+exports.getEnrolledStudents = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Validate courseId
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid Course ID' 
+      });
+    }
+
+    // Find enrollments and populate student details
+    const enrolledStudents = await Enrollment.find({ courseId })
+      .populate({
+        path: 'studentId',
+        select: 'username email' // Select only username and email
+      })
+      .lean(); // Convert to plain JavaScript object
+
+    // Transform the result to match the expected format
+    const formattedEnrolledStudents = enrolledStudents.map(enrollment => ({
+      _id: enrollment.studentId._id,
+      username: enrollment.studentId.username,
+      email: enrollment.studentId.email
+    }));
+
+    res.status(200).json({ 
+      success: true, 
+      enrolledStudents: formattedEnrolledStudents 
+    });
+
+  } catch (error) {
+    console.error('Get enrolled students error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error retrieving enrolled students' 
+    });
+  }
+};
+
