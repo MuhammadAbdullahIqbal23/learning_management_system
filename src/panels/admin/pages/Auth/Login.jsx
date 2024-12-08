@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
-import {GoogleLogin} from 'react-google-login';
-const clientID ="218282484846-v50d8lpi23n4gak9812d88bfh9km0cb1.apps.googleusercontent.com";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -12,13 +10,7 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
-
-  const handleGoogleLogin = () => {
-    // Redirect to backend Google OAuth route
-    window.location.href = "http://localhost:5002/api/auth/google";
-  };
   
-  // Add to your existing Login component
   const handleLogin = async (e) => {
     e.preventDefault();
     if (loading) return;
@@ -164,26 +156,6 @@ const Login = () => {
                 : "Login"}
             </button>
           </form>
-
-          {/* Google Login Button */}
-          {!isRegistering && (
-            <div className="google-login-section">
-              <div className="separator">
-                <span>or</span>
-              </div>
-              <button 
-                onClick={handleGoogleLogin}
-                className="google-login-button"
-              >
-                <img 
-                  src="https://www.svgrepo.com/show/303281/google-logo-2015.svg" 
-                  alt="Google logo" 
-                  className="google-logo"
-                />
-                Continue with Google
-              </button>
-            </div>
-          )}
 
           <p className="login-footer">
             {isRegistering ? (

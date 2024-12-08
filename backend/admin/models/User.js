@@ -24,11 +24,6 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true  // Allows multiple null values
   },
-  email: {
-    type: String,
-    unique: true,
-    sparse: true
-  },
   name: String,
   profilePicture: String
 });
