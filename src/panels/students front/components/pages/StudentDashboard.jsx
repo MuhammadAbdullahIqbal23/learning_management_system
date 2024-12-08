@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import CourseManagement from './Course';
+
+// Create a Home component for the dashboard
+const DashboardHome = () => (
+  <div className="p-4">
+    <h1 className="text-2xl font-bold mb-4">Welcome to Dashboard</h1>
+    {/* Add your dashboard content here */}
+  </div>
+);
 
 const StudentDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,68 +26,71 @@ const StudentDashboard = () => {
   };
 
   const isActivePath = (path) => {
-    return location.pathname.includes(path);
+    return location.pathname === path;
   };
 
   return (
-    <DashboardContainer>
-      <Sidebar isMobileMenuOpen={isMobileMenuOpen}>
-        <SidebarHeader>
-          <h2>Dashboard</h2>
-          <button onClick={toggleMobileMenu}>&#10005;</button>
-        </SidebarHeader>
-        <MenuList>
-          <MenuItem 
-            active={isActivePath('/student/dashboard')} 
-            onClick={() => handleNavigation('/student/dashboard')}
-          >
-            Home
-          </MenuItem>
-          <MenuItem 
-            active={isActivePath('/student/courses')}
-            onClick={() => handleNavigation('/student/courses')}
-          >
-            Courses
-          </MenuItem>
-          <MenuItem 
-            active={isActivePath('/student/profile')}
-            onClick={() => handleNavigation('/student/profile')}
-          >
-            Profile
-          </MenuItem>
-          <MenuItem 
-            active={isActivePath('/student/settings')}
-            onClick={() => handleNavigation('/student/settings')}
-          >
-            Settings
-          </MenuItem>
-        </MenuList>
-      </Sidebar>
+    <html lang="en">
+      <head>
+        <meta charSet="UTF-8" />
+        <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Student Dashboard</title>
+      </head>
+      <body>
+        <div id="root">
+          <DashboardContainer>
+            <Sidebar isMobileMenuOpen={isMobileMenuOpen}>
+              <SidebarHeader>
+                <h2>Dashboard</h2>
+                <button onClick={toggleMobileMenu} className="lg:hidden">&#10005;</button>
+              </SidebarHeader>
+              <MenuList>
+                {[
+                  { path: '/student/dashboard', label: 'Home' },
+                  { path: '/student/courses', label: 'Courses' },
+                  { path: '/student/profile', label: 'Profile' },
+                  { path: '/student/settings', label: 'Settings' }
+                ].map(({ path, label }) => (
+                  <MenuItem 
+                    key={path}
+                    active={isActivePath(path)} 
+                    onClick={() => handleNavigation(path)}
+                  >
+                    {label}
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </Sidebar>
 
-      <MainContent>
-        <Navbar>
-          <button onClick={toggleMobileMenu}>&#9776;</button>
-          <NavbarLinks>
-            <a href="#notifications">Notifications</a>
-            <a href="#logout">Logout</a>
-          </NavbarLinks>
-        </Navbar>
-        <ContentWrapper>
-          {location.pathname === '/student/courses' ? (
-            <CourseManagement />
-          ) : location.pathname === '/student/dashboard' ? (
-            <>
-              <h1>Welcome to the Student Dashboard</h1>
-              <p>Here is your overview and updates.</p>
-            </>
-          ) : null}
-        </ContentWrapper>
-      </MainContent>
-    </DashboardContainer>
+            <MainContent>
+              <Navbar>
+                <button onClick={toggleMobileMenu} className="lg:hidden">&#9776;</button>
+                <NavbarLinks>
+                  <a href="#notifications">Notifications</a>
+                  <a href="#logout">Logout</a>
+                </NavbarLinks>
+              </Navbar>
+              <ContentWrapper>
+                <Routes>
+                  <Route path="dashboard" element={<DashboardHome />} />
+                  <Route path="courses" element={<CourseManagement />} />
+                  <Route path="profile" element={<div>Profile Page</div>} />
+                  <Route path="settings" element={<div>Settings Page</div>} />
+                  <Route path="*" element={<div>Not Found</div>} />
+                </Routes>
+              </ContentWrapper>
+            </MainContent>
+          </DashboardContainer>
+        </div>
+        <script type="module" src="/src/main.tsx"></script>
+        <script src="//code.tidio.co/8u1spxrcgdblh0hyxswqtyvxik9adsty.js" async></script>
+      </body>
+    </html>
   );
 };
 
-// Styles remain the same
+// Styled components remain the same
 const DashboardContainer = styled.div`
   min-height: 100vh;
   background-color: #f3f4f6;

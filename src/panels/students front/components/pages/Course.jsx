@@ -1,5 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, PlusCircle, Edit, Trash2 } from 'lucide-react';
+import './Course.css';
+
+// Simulated API for courses (replace with actual backend API)
+const courseAPI = {
+  async fetchCourses() {
+    // Simulate API delay and response
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return [
+      { _id: '1', title: 'Introduction to React', description: 'Learn React basics', instructor: 'Jane Doe' },
+      { _id: '2', title: 'Advanced JavaScript', description: 'Deep dive into JS', instructor: 'John Smith' }
+    ];
+  },
+
+  async createCourse(courseData) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { ...courseData, _id: Math.random().toString() };
+  },
+
+  async updateCourse(id, courseData) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { ...courseData, _id: id };
+  },
+
+  async deleteCourse(id) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return true;
+  }
+};
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
@@ -15,12 +43,11 @@ const CourseManagement = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/courses');
-      if (!response.ok) throw new Error('Failed to fetch courses');
-      const data = await response.json();
+      const data = await courseAPI.fetchCourses();
       setCourses(data);
+      setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to fetch courses');
     } finally {
       setLoading(false);
     }
@@ -41,27 +68,18 @@ const CourseManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingId 
-        ? `/api/courses/${editingId}`
-        : '/api/courses';
-      
-      const method = editingId ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) throw new Error('Failed to save course');
+      if (editingId) {
+        await courseAPI.updateCourse(editingId, formData);
+      } else {
+        await courseAPI.createCourse(formData);
+      }
       
       await fetchCourses();
       setFormData({ title: '', description: '', instructor: '' });
       setEditingId(null);
+      setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to save course');
     }
   };
 
@@ -69,15 +87,11 @@ const CourseManagement = () => {
     if (!window.confirm('Are you sure you want to delete this course?')) return;
     
     try {
-      const response = await fetch(`/api/courses/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) throw new Error('Failed to delete course');
-      
+      await courseAPI.deleteCourse(id);
       await fetchCourses();
+      setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to delete course');
     }
   };
 
@@ -88,6 +102,11 @@ const CourseManagement = () => {
       instructor: course.instructor
     });
     setEditingId(course._id);
+  };
+
+  const handleCancelEdit = () => {
+    setFormData({ title: '', description: '', instructor: '' });
+    setEditingId(null);
   };
 
   return (
@@ -144,13 +163,24 @@ const CourseManagement = () => {
                 required
               />
             </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
-            >
-              <PlusCircle className="h-4 w-4" />
-              {editingId ? 'Update Course' : 'Add Course'}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                type="submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                {editingId ? 'Update Course' : 'Add Course'}
+              </button>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>
