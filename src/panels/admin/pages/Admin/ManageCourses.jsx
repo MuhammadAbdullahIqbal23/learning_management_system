@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -10,218 +9,25 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 
-// Global Styles
-const GlobalStyle = createGlobalStyle`
-  body {
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f6f9;
-  }
-`;
-
-// Styled Components (similar to ManageUsers)
-const PageContainer = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #e9f0f9 0%, #d6e2f0 100%);
-  padding: 2rem;
-  box-sizing: border-box;
-`;
-
-const CourseManagementCard = styled.div`
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  overflow: hidden;
-`;
-
-const PageHeader = styled.div`
-  background-color: #3b82f6;
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-`;
-
-const HeaderTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  
-  h1 {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 700;
-  }
-`;
-
-const AddCourseButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: white;
-  color: #3b82f6;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
-`;
-
-const CourseTable = styled.table`
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-
-  thead {
-    background-color: #f3f4f6;
-    color: #374151;
-  }
-
-  th, td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  tbody tr {
-    transition: background-color 0.2s;
-
-    &:hover {
-      background-color: #f9fafb;
-    }
-  }
-`;
-
-const InstructorBadge = styled.span`
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  background-color: #e0f2fe; 
-  color: #0c4a6e;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: ${props => props.color || '#3b82f6'};
-  transition: color 0.3s ease;
-  margin-right: 0.5rem;
-
-  &:hover {
-    color: ${props => props.hoverColor || '#2563eb'};
-  }
-`;
-
-const Modal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 500px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  position: relative;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #6b7280;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  label {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-  }
-
-  input, textarea, select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    transition: border-color 0.3s;
-
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-    }
-  }
-
-  textarea {
-    min-height: 100px;
-  }
-`;
-
-const FormActions = styled.div`
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const SubmitButton = styled.button`
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #2563eb;
-  }
-`;
-
-const CancelButton = styled.button`
-  background-color: #f3f4f6;
-  color: #374151;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-
-  &:hover {
-    background-color: #e5e7eb;
-  }
-`;
+// Import styled components
+import { 
+  GlobalStyle,
+  PageContainer,
+  CourseManagementCard,
+  PageHeader,
+  HeaderTitle,
+  AddCourseButton,
+  CourseTable,
+  InstructorBadge,
+  ActionButton,
+  Modal,
+  ModalContent,
+  CloseButton,
+  Form,
+  FormActions,
+  SubmitButton,
+  CancelButton
+} from './CourseManagementStyles';
 
 const ManageCourses = () => {
   const [courses, setCourses] = useState([]);

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Users, BookOpen, GraduationCap, UserCircle, LogOut, User } from 'lucide-react';
-import Chatbot from '../../components/Chatbot/Chatbot';
+import { LayoutDashboard, Users, BookOpen, GraduationCap, UserCircle, LogOut, User, X, MessageCircle } from 'lucide-react';
+import ChatbotToggle from '../../components/Chatbot/ChatbotToggle';
 import './Dashboard.css';
+import { Menu } from 'lucide-react';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -12,42 +13,31 @@ const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Get authentication token
-  const getToken = () => {
-    return localStorage.getItem('token');
-  };
+  // Authentication and token management
+  const getToken = () => localStorage.getItem('token');
 
-  // Handle token-related errors
   const handleTokenError = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  // Logout functionality
   const handleLogout = async () => {
     try {
-      // Remove token from local storage
-      localStorage.removeItem('token');
-      
-      // Optional: Call backend logout endpoint if needed
       const token = getToken();
       await axios.post('http://localhost:5002/api/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
-
-      // Redirect to login page
-      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Even if there's an error, still redirect to login
+    } finally {
+      localStorage.removeItem('token');
       navigate('/login');
     }
   };
 
-  // Fetch Users
+  // Data fetching functions
   const fetchUsers = async () => {
     const token = getToken();
     
@@ -58,9 +48,7 @@ const Dashboard = () => {
 
     try {
       const response = await axios.get('http://localhost:5002/api/admin/users', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       setUsers(response.data.users);
@@ -76,7 +64,6 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch Courses
   const fetchCourses = async () => {
     const token = getToken();
     
@@ -87,9 +74,7 @@ const Dashboard = () => {
 
     try {
       const response = await axios.get('http://localhost:5002/api/courses', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       setCourses(response.data.courses);
@@ -111,41 +96,80 @@ const Dashboard = () => {
     fetchCourses();
   }, [navigate]);
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  // Sidebar Menu Items
+  const sidebarMenuItems = [
+    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
+    { to: '/admin/manageusers', icon: Users, label: 'Manage Users' },
+    { to: '/admin/courses', icon: BookOpen, label: 'Courses Management' },
+    { to: '/admin/enrolled', icon: GraduationCap, label: 'Enrolled Students' },
+    { to: '/admin/manageinstructors', icon: User, label: 'Manage Instructors' },
+  ];
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'active' : ''}`}>
         <div className="sidebar-header">
           <h1>LMS Admin</h1>
+          <div 
+            className="mobile-close-menu" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={24} />
+          </div>
         </div>
         <nav>
           <ul className="menu">
-            {[
-              { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Admin Dashboard' },
-              { to: '/admin/manageusers', icon: Users, label: 'Manage Users' },
-              { to: '/admin/courses', icon: BookOpen, label: 'Courses Management' },
-              { to: '/admin/enrolled', icon: GraduationCap, label: 'Enrolled Students' },
-              { to: '/admin/manageinstructors', icon: User, label: 'Manage Instructors' },
-            ].map(({ to, icon: Icon, label }) => (
+            {sidebarMenuItems.map(({ to, icon: Icon, label }) => (
               <li key={label}>
                 <Link
                   to={to}
                   className={`menu-item ${location.pathname === to ? 'active' : ''}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   <Icon className="menu-icon" />
                   <span>{label}</span>
                 </Link>
               </li>
             ))}
+            {/* Mobile-specific Logout */}
+            <li>
+              <div 
+                className="menu-item logout-mobile"
+                onClick={handleLogout}
+              >
+                <LogOut className="menu-icon" />
+                <span>Logout</span>
+              </div>
+            </li>
           </ul>
         </nav>
       </aside>
+
+      {/* Sidebar Overlay for Mobile */}
+      {isMobileMenuOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
 
       {/* Main Content */}
       <main className="main-content">
         {/* Navbar */}
         <nav className="navbar">
           <div className="navbar-content">
+            <div 
+              className="mobile-menu-toggle" 
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </div>
             <Link to="/admin/dashboard" className="navbar-brand">LMS</Link>
             <div className="navbar-links">
               {[
@@ -201,6 +225,8 @@ const Dashboard = () => {
                   </div>
                 ))}
               </div>
+
+
             </>
           ) : (
             <Outlet />
@@ -214,8 +240,8 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Chatbot */}
-        <Chatbot />
+        {/* Chatbot Toggle */}
+        <ChatbotToggle />
       </main>
     </div>
   );
