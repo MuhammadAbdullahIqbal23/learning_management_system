@@ -1,30 +1,39 @@
 const express = require('express');
 const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const authRoutes = require('./admin/routes/authRoutes');
+const adminRoutes = require('./admin/routes/adminRoutes');
+const instructorRoutes = require('./admin/routes/instructorRoutes');
+const studentRoutes = require('./admin/routes/studentRoutes');
+const courseRoutes = require('./admin/routes/courseRoutes');
+const errorMiddleware = require('./admin/middlewares/errorMiddleware');
+
+// Load environment variables
+dotenv.config();
+
+// Initialize express app
 const app = express();
-const port = 5000;
 
-// Middleware
+// Connect to MongoDB
+connectDB();
+
+// Middleware setup
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Parse JSON bodies
 
-// Dummy login credentials
-const validCredentials = {
-  username: 'admin',
-  password: 'admin123',
-};
-
-// Login route
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-
-  if (username === validCredentials.username && password === validCredentials.password) {
-    res.json({ success: true });
-  } else {
-    res.json({ success: false, message: 'Invalid username or password' });
-  }
-});
+// API routes
+app.use('/api/auth', authRoutes); // Authentication routes
+app.use('/api/admin', adminRoutes); // Admin-specific routes
+app.use('/api/instructor', instructorRoutes); // Instructor-specific routes
+app.use('/api/student', studentRoutes); // Student-specific routes
+app.use('/api/courses', courseRoutes); // Course management routes
+// app.use('/api/feedback',feedbackRoutes)
+// Error handling middleware
+app.use(errorMiddleware); // Catch-all error handler
 
 // Start the server
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
