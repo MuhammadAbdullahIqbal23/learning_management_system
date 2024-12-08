@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, GraduationCap, BarChart, UserCircle, LogOut } from 'lucide-react';
-import '../Admin/Dashboard.css';
+import { LayoutDashboard, Users, BookOpen, GraduationCap, UserCircle, LogOut, User } from 'lucide-react';
+import Chatbot from '../../components/Chatbot/Chatbot'; // Import the Chatbot component
+import './Dashboard.css';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -20,7 +21,7 @@ const Dashboard = () => {
               { to: '/admin/manageusers', icon: Users, label: 'Manage Users' },
               { to: '/admin/courses', icon: BookOpen, label: 'Courses Management' },
               { to: '/admin/enrolled', icon: GraduationCap, label: 'Enrolled Students' },
-              { to: '/reports', icon: BarChart, label: 'Reports' },
+              { to: '/admin/manageinstructors', icon: User, label: 'Manage Instructors' },
             ].map(({ to, icon: Icon, label }) => (
               <li key={label}>
                 <Link 
@@ -83,6 +84,9 @@ const Dashboard = () => {
             <Outlet />
           )}
         </div>
+
+        {/* Chatbot */}
+        <Chatbot />
       </main>
     </div>
   );

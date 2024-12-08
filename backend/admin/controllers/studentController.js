@@ -1,110 +1,139 @@
-const Course = require('../models/Course');
-const Student = require('../models/Student');
+// controllers/studentController.js
+const Course = require("../models/Course");
+const User = require("../models/User");
+const Enrollment = require("../models/Enrollment");
 
-// Fetch enrolled courses for a student
+// Get enrolled courses for a student
 exports.getEnrolledCourses = async (req, res) => {
-  const { studentId } = req.params;
-
   try {
-    const courses = await Course.find({ students: studentId });
-    res.status(200).json({ success: true, courses });
+    const studentId = req.user._id; // Assuming you're using authentication middleware
+    
+    const enrollments = await Enrollment
+      .find({ studentId, status: 'active' })
+      .populate({
+        path: 'courseId',
+        select: 'title description instructor',
+        populate: {
+          path: 'instructor',
+          select: 'username'
+        }
+      });
+
+    const courses = enrollments.map(enrollment => enrollment.courseId);
+    
+    res.status(200).json({
+      success: true,
+      courses
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("Error fetching enrolled courses:", err);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching enrolled courses"
+    });
   }
 };
-router.get('/api/student', async (req, res) => {
+
+// Get all students
+exports.getUsers = async (req, res) => {
   try {
-    // Fetch users where role is 'student'
-    const students = await User.find({ role: 'student' }).select('_id username email');
-    res.status(200).json({ student: students });
+    const students = await User
+      .find({ role: "student" })
+      .select("_id username email");
+
+    res.status(200).json({
+      success: true,
+      users: students
+    });
   } catch (error) {
-    console.error('Error fetching students:', error);
-    res.status(500).json({ message: 'Failed to fetch students' });
+    console.error("Error fetching students:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching students"
+    });
   }
-});
-// Enroll in a course
-// exports.enrollInCourse = async (req, res) => {
-//   const { studentId, courseId } = req.body;
+};
 
-//   try {
-//     const course = await Course.findById(courseId);
-//     if (!course) {
-//       return res.status(404).json({ success: false, message: 'Course not found' });
-//     }
-
-//     if (!course.students.includes(studentId)) {
-//       course.students.push(studentId);
-//       await course.save();
-//     }
-
-//     res.status(200).json({ success: true, message: 'Enrolled successfully', course });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ success: false, message: 'Server error' });
-//   }
-// };
-
+// Enroll a student in a course
 exports.enrollInCourse = async (req, res) => {
   const { studentId, courseId } = req.body;
 
   try {
-    // Find the course
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ success: false, message: "Course not found" });
-    }
+    // Verify both student and course exist
+    const [student, course] = await Promise.all([
+      User.findOne({ _id: studentId, role: 'student' }),
+      Course.findById(courseId)
+    ]);
 
-    // Find the student
-    const student = await Student.findById(studentId);
     if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
     }
 
-    // Check if already enrolled
-    if (course.students.includes(studentId)) {
-      return res.status(400).json({ success: false, message: "Student already enrolled" });
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found"
+      });
     }
 
-    // Enroll student
-    course.students.push(studentId);
-    await course.save();
+    // Check if student is already enrolled
+    const existingEnrollment = await Enrollment.findOne({
+      studentId,
+      courseId,
+      status: 'active'
+    });
 
-    res.status(200).json({ success: true, message: "Student enrolled successfully" });
+    if (existingEnrollment) {
+      return res.status(400).json({
+        success: false,
+        message: "Student is already enrolled in this course"
+      });
+    }
+
+    // Create new enrollment
+    const enrollment = new Enrollment({
+      studentId,
+      courseId
+    });
+
+    await enrollment.save();
+
+    // Add student to course's students array if not already there
+    if (!course.students.includes(studentId)) {
+      course.students.push(studentId);
+      await course.save();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Student enrolled successfully",
+      enrollment
+    });
   } catch (error) {
     console.error("Enrollment error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({
+      success: false,
+      message: "Error enrolling student"
+    });
   }
-};
-
-// Submit a quiz
-exports.submitQuiz = async (req, res) => {
-  const { courseId, studentId, quiz } = req.body;
-
-  try {
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
+  exports.getUsers = async (req, res) => {
+    try {
+      const users = await User.find({ role: "student" })
+        .select("_id username email")
+        .lean();
+  
+      // Log the response to help with debugging
+      console.log("Users found:", users);
+  
+      // Return the users directly without nesting
+      res.status(200).json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Server error" });
     }
-
-    course.quizzes.push({ student: studentId, quiz });
-    await course.save();
-    res.status(200).json({ success: true, message: 'Quiz submitted successfully', course });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
-
-// Get grades for enrolled courses
-exports.getGrades = async (req, res) => {
-  const { studentId } = req.query;
-
-  try {
-    const courses = await Course.find({ students: studentId }).select('grades');
-    res.status(200).json({ success: true, grades: courses });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
+  };
+  
 };

@@ -5,7 +5,9 @@ import Login from './panels/admin/pages/Auth/Login';
 import Register from './panels/admin/pages/Auth/Register';
 import ManageUsers from './panels/admin/pages/Admin/ManageUsers';
 import ManageCourses from './panels/admin/pages/Admin/ManageCourses';
+import ManageInstructors from './panels/admin/pages/Admin/manageIntructors';
 import StudentCoursesDashboard from './panels/admin/pages/Admin/studentCourseEnrollment';
+import Chatbot from './panels/admin/components/Chatbot/Chatbot'; // Import Chatbot
 import './App.css';
 
 const App = () => {
@@ -22,9 +24,13 @@ const App = () => {
             <Route path="manageusers" element={<ManageUsers />} />
             <Route path="courses" element={<ManageCourses />} />
             <Route path="enrolled" element={<StudentCoursesDashboard />} />
+            <Route path="manageinstructors" element={<ManageInstructors />} />
           </Route>
           <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         </Routes>
+        
+        {/* Global Chatbot */}
+        <Chatbot />
       </div>
     </Router>
   );

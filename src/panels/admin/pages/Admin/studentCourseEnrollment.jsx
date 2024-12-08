@@ -71,69 +71,98 @@ const EnrollStudents = () => {
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchStudents();
-    fetchCourses();
+    const fetchInitialData = async () => {
+      await Promise.all([fetchStudents(), fetchCourses()]);
+    };
+    fetchInitialData();
   }, []);
 
-  const fetchStudents = async () => {
-    try {
-      const response = await axios.get("http://localhost:5002/api/admin/users");
-      console.log("API Response for users:", response.data); // Log API response
-  
-      if (response.data && response.data.users) {
-        const filteredStudents = response.data.users.filter(
-          (user) => user.role === "student"
-        );
-        console.log("Filtered students:", filteredStudents); // Log filtered students
-        setStudents(filteredStudents);
-      } else {
-        setError("Failed to fetch students. No users data found.");
-      }
-    } catch (err) {
-      console.error("Error fetching students:", err);
-      setError("Error fetching students."); // Update error state
-    }
-  };
-  
+const fetchStudents = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-  const fetchCourses = async () => {
-    try {
-      const response = await axios.get("http://localhost:5002/api/courses");
-      if (response.data && response.data.courses) {
-        setCourses(response.data.courses);
-      } else {
-        setError("Failed to fetch courses.");
-      }
-    } catch (err) {
-      console.error("Error fetching courses:", err);
-      setError("Error fetching courses.");
-    }
-  };
+    const token = localStorage.getItem("authToken"); // Retrieve token from local storage
+    const response = await axios.get("http://localhost:5002/api/admin/users", {
+      headers: {
+        Authorization: `Bearer ${token}`, // Include token in headers
+      },
+    });
 
-  const handleEnrollment = async () => {
-    if (!selectedStudent || !selectedCourse) {
-      setError("Please select both a student and a course.");
-      return;
-    }
-    setError(""); // Clear previous errors
+    const studentsData = Array.isArray(response.data)
+      ? response.data.filter(user => user.role === "student")
+      : response.data?.users?.filter(user => user.role === "student") || [];
 
-    try {
-      const payload = {
+    setStudents(studentsData);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to fetch students.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchCourses = async () => {
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("authToken"); // Retrieve token
+    const response = await axios.get("http://localhost:5002/api/courses", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const coursesData = Array.isArray(response.data)
+      ? response.data
+      : response.data?.courses || [];
+
+    setCourses(coursesData);
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to fetch courses.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleEnrollment = async () => {
+  if (!selectedStudent || !selectedCourse) {
+    setError("Please select both a student and a course.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+    setError("");
+    const token = localStorage.getItem("authToken"); // Retrieve token
+    const response = await axios.post(
+      "http://localhost:5002/api/student/enroll",
+      {
         studentId: selectedStudent,
         courseId: selectedCourse,
-      };
-      const response = await axios.post(
-        "http://localhost:5002/api/student/enroll",
-        payload
-      );
-      alert(response.data.message || "Student enrolled successfully.");
-    } catch (err) {
-      console.error("Error enrolling student:", err);
-      setError("Enrollment failed. Please try again.");
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data.success) {
+      alert("Student enrolled successfully!");
+      setSelectedStudent("");
+      setSelectedCourse("");
+    } else {
+      setError(response.data.message || "Enrollment failed.");
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to enroll student.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <PageContainer>
@@ -146,13 +175,18 @@ const EnrollStudents = () => {
           id="student-select"
           value={selectedStudent}
           onChange={(e) => setSelectedStudent(e.target.value)}
+          disabled={loading}
         >
           <option value="">-- Select Student --</option>
-          {students.map((student) => (
-            <option key={student._id} value={student._id}>
-              {student.username || student.name} {/* Ensure correct field */}
-            </option>
-          ))}
+          {students.length > 0 ? (
+            students.map((student) => (
+              <option key={student._id} value={student._id}>
+                {student.username || student.email || "Unnamed Student"}
+              </option>
+            ))
+          ) : (
+            <option disabled>No students available</option>
+          )}
         </Select>
 
         <Label htmlFor="course-select">Select Course</Label>
@@ -160,16 +194,26 @@ const EnrollStudents = () => {
           id="course-select"
           value={selectedCourse}
           onChange={(e) => setSelectedCourse(e.target.value)}
+          disabled={loading}
         >
           <option value="">-- Select Course --</option>
-          {courses.map((course) => (
-            <option key={course._id} value={course._id}>
-              {course.title}
-            </option>
-          ))}
+          {courses.length > 0 ? (
+            courses.map((course) => (
+              <option key={course._id} value={course._id}>
+                {course.title || "Untitled Course"}
+              </option>
+            ))
+          ) : (
+            <option disabled>No courses available</option>
+          )}
         </Select>
 
-        <Button onClick={handleEnrollment}>Enroll Student</Button>
+        <Button
+          onClick={handleEnrollment}
+          disabled={loading || !selectedStudent || !selectedCourse}
+        >
+          {loading ? "Processing..." : "Enroll Student"}
+        </Button>
       </EnrollmentCard>
     </PageContainer>
   );
