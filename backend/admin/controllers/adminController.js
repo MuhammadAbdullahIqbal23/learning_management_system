@@ -1,15 +1,7 @@
 const User = require('../models/User');
 
 // Fetch all users
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await User.find();
-    res.status(200).json({ success: true, users });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-};
+
 
 // Delete a user by ID
 exports.deleteUser = async (req, res) => {
